@@ -1,71 +1,115 @@
-export type SimKind =
-  | 'scope-onion'
-  | 'system-anatomy'
-  | 'problem-framer'
-  | 'vector-space'
-  | 'data-pipeline'
-  | 'learning-signal'
-  | 'decision-boundary'
-  | 'neural-net'
-  | 'token-attention'
-  | 'adaptation-dial'
-  | 'diffusion-vision'
-  | 'agent-loop'
-  | 'rl-grid'
-  | 'compression-ops'
-  | 'causality-eval';
+export type SceneWidget =
+  | {
+      kind: 'tester';
+      promptLabel: string;
+      modes: [
+        { name: string; badge: string },
+        { name: string; badge: string }
+      ];
+      cases: {
+        name: string;
+        detail: string;
+        results: [
+          { pass: boolean; output: string; why: string },
+          { pass: boolean; output: string; why: string }
+        ];
+      }[];
+    }
+  | {
+      kind: 'slider';
+      dialLabel: string;
+      stops: {
+        label: string;
+        tag: string;
+        sampleInput: string;
+        sampleOutput: string;
+        verdict: 'good' | 'warn' | 'bad';
+        why: string;
+      }[];
+    }
+  | {
+      kind: 'pipeline';
+      requestText: string;
+      stations: {
+        name: string;
+        role: string;
+        defaultOn: boolean;
+        whenOffOutput: string;
+        whenOffProblem: string;
+      }[];
+      allOnOutput: string;
+      allOnWhy: string;
+    }
+  | {
+      kind: 'compare';
+      scenario: string;
+      cards: {
+        name: string;
+        tag: string;
+        output: string;
+        speed: string;
+        cost: string;
+        best: boolean;
+        why: string;
+      }[];
+    }
+  | {
+      kind: 'spotter';
+      instruction: string;
+      xrayLabel: string;
+      items: {
+        title: string;
+        preview: string;
+        hiddenTruth: string;
+        isTrap: boolean;
+      }[];
+    };
+
+export interface LessonScene {
+  bridge: string;          // 1 short line connecting from previous scene/lesson
+  headline: string;        // Big, clear, <= 12 words
+  plainText: string;       // 1-2 simple everyday sentences, zero unexplained jargon
+  widget: SceneWidget;
+}
 
 export interface SubTopicItem {
   title: string;
-  plain: string;      // 1 crisp beginner sentence
-  example: string;    // Concrete everyday example
+  plain: string;
+  example: string;
 }
 
 export interface LearningResource {
   title: string;
   type: 'video' | 'text';
-  source: string;     // e.g. "3Blue1Brown", "StatQuest", "Jay Alammar"
-  duration: string;   // e.g. "19m video" or "8m visual read"
+  source: string;
+  duration: string;
   url: string;
-  why: string;        // 6-10 word reason why this helps a beginner
-}
-
-export interface LessonBeat {
-  label: string;      // Short badge e.g. "Everyday Hook", "Inside It", "Decision Rule"
-  headline: string;   // Crisp <= 10 words
-  body: string;       // Plain beginner sentence <= 24 words
-  simPreset?: number; // Automatically nudges the interactive visual to match this beat
+  why: string;
 }
 
 export interface Topic {
-  id: string;               // e.g. "t01"
-  indexNum: number;         // 1..40 matching AI_Detailed_Topic_Index.md
-  levelId: number;          // 1..10
-  orderInLevel: number;     // 1..N within level
-  title: string;            // Original index section title
-  friendlyTitle: string;    // Immediate plain-English title
-  icon: string;             // Key in Icons.tsx
+  id: string;
+  indexNum: number;        // 1..40 matching AI_Detailed_Topic_Index.md
+  levelId: number;         // 1..10
+  orderInLevel: number;
+  title: string;           // Original index title
+  friendlyTitle: string;   // Clear beginner title
+  summaryQuestion: string; // Shown on the map card
+  icon: string;
   prevTopicId?: string;
   nextTopicId?: string;
-  prevBridge: string;       // Connects directly from the previous lesson
-  bigQuestion: string;      // The ONE core question on screen
-  nextBridge: string;       // Leads curiosity into the next lesson
-  simKind: SimKind;
-  simHint: string;          // Short 5-8 word prompt for interacting with the lab
-  beats: [LessonBeat, LessonBeat, LessonBeat];
-  useWhen: string;
-  avoidWhen: string;
-  watchOut: string;
+  nextLessonBridge: string;
+  scenes: LessonScene[];   // 3-4 connected hands-on visual scenes
   subTopics: SubTopicItem[];
   resources: LearningResource[];
 }
 
 export interface LevelDef {
-  id: number;               // 1..10
+  id: number;
   title: string;
-  subtitle: string;         // <= 9 words
+  subtitle: string;
   icon: string;
-  topicIds: string[];       // Ordered list of Topic IDs in this level
+  topicIds: string[];
   gateTitle: string;
 }
 
@@ -85,7 +129,7 @@ export interface PipelineChallenge {
   levelId: number;
   mechanic: 'PIPELINE';
   prompt: string;
-  steps: string[]; // Correct order; shuffled at runtime
+  steps: string[];
   why: string;
 }
 
@@ -140,9 +184,9 @@ export interface LevelScore {
 
 export interface ProgressState {
   learnerKey: string;
-  unlockedLevel: number;           // Starts at 1, max 10
-  completedTopics: string[];       // Topic IDs
-  exploredSubTopics: string[];     // "t01:0"
+  unlockedLevel: number;
+  completedTopics: string[];
+  exploredSubTopics: string[];
   levelScores: Record<number, LevelScore>;
   lastActiveTopicId: string | null;
   updatedAt: number;
